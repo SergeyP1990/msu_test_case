@@ -8,20 +8,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 
-from lissajousgen import LissajousGenerator, lissajous_figure
+from lissajousgen import LissajousGenerator, LissajousFigure
 
 
-# Настройки фигуры по умолчанию
-default_settings = {
-    "freq_x": 2,
-    "freq_y": 3,
-    "color": "midnightblue",
-    "width": 2
-}
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 # Цвета для matplotlib
-with open("mpl.json", mode="r") as f:
+with open(resource_path("mpl.json"), mode="r") as f:
     mpl_color_dict = json.load(f)
 
 
@@ -29,19 +31,20 @@ class LissajousWindow(qt.QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.generator = None
         logging.debug("Load UI...")
         # Загружаем интерфейс из файла
-        uic.loadUi("main_window.ui", self)
+        uic.loadUi(resource_path("main_window.ui"), self)
 
         logging.debug("Setting Title...")
         # Ставим версию и иконку
-        with open("version.txt", "r") as f:
-            version = f.readline()
+        with open(resource_path("version.txt"), "r") as file_with_ver:
+            version = file_with_ver.readline()
         self.setWindowTitle("Генератор фигур Лиссажу. Версия {}. CC BY-SA 4.0 Ivanov".format(
             version
         ))
         logging.debug("Setting Icon...")
-        self.setWindowIcon(QtGui.QIcon("icon.png"))
+        self.setWindowIcon(QtGui.QIcon(resource_path("icon.png")))
 
         # Создаём холст matplotlib
         self._fig = plt.figure(figsize=(4, 3), dpi=72)
@@ -61,7 +64,7 @@ class LissajousWindow(qt.QMainWindow):
         self._fc.move(20, 20)
 
         # Первичное построение фигуры
-        self.plot_lissajous_figure()
+        self.plot_lissajous_figure(LissajousFigure())
 
         logging.debug("Resizing...")
         self.resize(650, 450)
@@ -74,33 +77,30 @@ class LissajousWindow(qt.QMainWindow):
         Обработчик нажатия на кнопку применения настроек
         """
         # Получаем данные из текстовых полей
-        settings = {}
-
-        settings["freq_x"] = float(self.freq_x_lineedit.text())
-        settings["freq_y"] = float(self.freq_y_lineedit.text())
-        settings["color"] = mpl_color_dict[self.color_combobox.currentText()]
-        settings["width"] = int(self.width_combobox.currentText())
+        settings = {"freq_x": float(self.freq_x_lineedit.text()),
+                    "freq_y": float(self.freq_y_lineedit.text()),
+                    "color": mpl_color_dict[str(self.color_combobox.currentIndex())],
+                    "line_width": int(self.width_combobox.currentText())}
+        figure = LissajousFigure(**settings)
 
         # Перестраиваем график
-        self.plot_lissajous_figure(settings)
+        self.plot_lissajous_figure(figure)
 
-    def plot_lissajous_figure(self, settings=default_settings):
+    def plot_lissajous_figure(self, liss_figure: LissajousFigure):
         """
         Обновление фигуры
         """
         # Удаляем устаревшие данные с графика
         self._ax.cla()
-        # for line in self._ax.lines:
-        #     line.remove()
 
         # Генерируем сигнал для построения
         self.generator = LissajousGenerator()
-        figure = self.generator.generate_figure(settings["freq_x"],
-                                                settings["freq_y"])
+        logging.debug("Object at {}".format(self.generator))
+        self.generator.generate_figure(liss_figure)
 
         # Строим график
-        self._ax.plot(figure.x_arr, figure.y_arr,
-                      color=settings["color"], linewidth=settings["width"])
+        self._ax.plot(liss_figure.x_arr, liss_figure.y_arr,
+                      color=liss_figure.color, linewidth=liss_figure.line_width)
 
         plt.axis("off")
 
@@ -121,6 +121,8 @@ class LissajousWindow(qt.QMainWindow):
             return
 
         plt.savefig(file_path)
+
+
 
 if __name__ == "__main__":
     # Инициализируем приложение Qt

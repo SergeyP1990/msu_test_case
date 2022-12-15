@@ -1,6 +1,6 @@
 {
-    "Красный": "crimson",
-    "Зелёный": "green",
-    "Жёлтый": "gold",
-    "Синий": "midnightblue"
+    "0": "midnightblue",
+    "1": "green",
+    "2": "crimson",
+    "3": "gold"
 }
