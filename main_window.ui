@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>430</x>
@@ -24,8 +24,15 @@
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Частота X (a)</string>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="freq_y_lineedit">
+      <widget class="QLineEdit" name="freq_x_lineedit">
        <property name="text">
         <string>3</string>
        </property>
@@ -39,7 +46,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="freq_x_lineedit">
+      <widget class="QLineEdit" name="freq_y_lineedit">
        <property name="text">
         <string>2</string>
        </property>
@@ -87,11 +94,6 @@
       <widget class="QComboBox" name="width_combobox">
        <item>
         <property name="text">
-         <string/>
-        </property>
-       </item>
-       <item>
-        <property name="text">
          <string>1</string>
         </property>
        </item>
@@ -126,13 +128,7 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Частота X (a)</string>
-       </property>
-      </widget>
-     </item>
+
     </layout>
    </widget>
   </widget>

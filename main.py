@@ -1,8 +1,9 @@
+import logging
 import sys
 import os
 import PyQt5.QtWidgets as qt
 from PyQt5 import uic, QtGui
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAggBase as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import numpy as np
 import json
@@ -26,19 +27,21 @@ with open("mpl.json", mode="r") as f:
 
 class LissajousWindow(qt.QMainWindow):
     def __init__(self):
-        super(LissajousWindow, self).__init__()
+        super().__init__()
 
+        logging.debug("Load UI...")
         # Загружаем интерфейс из файла
         uic.loadUi("main_window.ui", self)
 
+        logging.debug("Setting Title...")
         # Ставим версию и иконку
         with open("version.txt", "r") as f:
             version = f.readline()
         self.setWindowTitle("Генератор фигур Лиссажу. Версия {}. CC BY-SA 4.0 Ivanov".format(
             version
         ))
-        scriptDir = os.path.dirname(os.path.realpath(__file__))
-        self.setWindowIcon(QtGui.QIcon(scriptDir + os.path.sep + "icon.bmp"))
+        logging.debug("Setting Icon...")
+        self.setWindowIcon(QtGui.QIcon("icon.png"))
 
         # Создаём холст matplotlib
         self._fig = plt.figure(figsize=(4, 3), dpi=72)
@@ -54,13 +57,14 @@ class LissajousWindow(qt.QMainWindow):
         # Связываем созданный холст c окном
         self._fc.setParent(self)
         # Настраиваем размер и положение холста
-        self._fc.resize(400, 300)
+        self._fc.resize(400, 400)
         self._fc.move(20, 20)
 
         # Первичное построение фигуры
         self.plot_lissajous_figure()
 
-        self.resize(650, 300)
+        logging.debug("Resizing...")
+        self.resize(650, 450)
 
         self.plot_button.clicked.connect(self.plot_button_click_handler)
         self.save_button.clicked.connect(self.save_button_click_handler)
@@ -85,8 +89,9 @@ class LissajousWindow(qt.QMainWindow):
         Обновление фигуры
         """
         # Удаляем устаревшие данные с графика
-        for line in self._ax.lines:
-            line.remove()
+        self._ax.cla()
+        # for line in self._ax.lines:
+        #     line.remove()
 
         # Генерируем сигнал для построения
         self.generator = LissajousGenerator()
@@ -109,14 +114,13 @@ class LissajousWindow(qt.QMainWindow):
         """
         Обработчик нажатия на кнопку сохранения настроек
         """
-        file_path, _ = qt.QFileDialog.getSaveFileName(self, "Сохранение изображения", "C:\\",
+        file_path, _ = qt.QFileDialog.getSaveFileName(self, "Сохранение изображения", "picture",
                                                             "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ")
 
         if file_path == "":
             return
 
-        raise NotImplementedError("Тут всего одной строчки не хватает.")
-
+        plt.savefig(file_path)
 
 if __name__ == "__main__":
     # Инициализируем приложение Qt
@@ -125,6 +129,7 @@ if __name__ == "__main__":
     # Создаём и настраиваем главное окно
     main_window = LissajousWindow()
 
+    logging.debug("Show window...")
     # Показываем окно
     main_window.show()
 
